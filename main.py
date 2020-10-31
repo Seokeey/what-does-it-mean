@@ -12,6 +12,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 CHROMEDRIVER_PATH = os.environ.get("CHROMEDRIVER_PATH")
+DEFAULT_DELAY = 15
 
         
 
@@ -43,7 +44,7 @@ class AutoBrowser:
         self.driver.get('https://www.google.com')
 
 
-    def wait_and_click(self, xpath, delay=15):
+    def wait_and_click(self, xpath, delay=DEFAULT_DELAY):
         try:
             w = WebDriverWait(self.driver, delay)
             elem = w.until(EC.element_to_be_clickable((By.XPATH, xpath)))
@@ -55,6 +56,17 @@ class AutoBrowser:
             time.sleep(2)
             return self.wait_and_click(xpath)
 
+    def wait_and_get_text(self, xpath, delay=DEFAULT_DELAY):
+        try:
+            w = WebDriverWait(self.driver, delay)
+            elem = w.until(EC.visibility_of_all_elements_located((By.XPATH, xpath)))
+            return elem.text
+        except Exception as e:
+            print("Error")
+            time.sleep(2)
+            return
+            
+
     def run(self):
         input_box = self.driver.find_element(
                 By.XPATH,
@@ -62,40 +74,23 @@ class AutoBrowser:
             )
         input_box.send_keys('unleash meaning')
         input_box.send_keys(Keys.ENTER)
-        time.sleep(1)
 
-        words = self.driver.find_element(
+        time.sleep(0.5)
+        texts = self.driver.find_element(
             By.XPATH,
             '//*[@id="tsuid11"]/span/div/div/div[1]/div/div[2]/div[1]/div/span'
         ).text
 
-        result = ""
-        for word in words:
-            if word.isalpha():
-                result += word
+        words = ""
+        for text in texts:
+            if text.isalpha():
+                words += text
 
-        speak(result)
-
-
+        speak(words)
 
 
 
 
-
-    
-
-        
-
-#        pronounce = self.driver.find_element(
-#                By.XPATH,
-#                '//*[@id="tsuid22"]/span/div/div/div[1]/div/div[1]/div/div[5]'
-#            )
-#
-#        pronounce.send_keys('click')
-
-
-
-
-
-auto = AutoBrowser(CHROMEDRIVER_PATH)
-auto.run()
+if __name__ == "__main__":
+    auto = AutoBrowser(CHROMEDRIVER_PATH)
+    auto.run()
