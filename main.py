@@ -9,6 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException
 
 
 CHROMEDRIVER_PATH = os.environ.get("CHROMEDRIVER_PATH")
@@ -16,12 +17,13 @@ DEFAULT_DELAY = 15
 
         
 
-def speak(text):
-    tts = gTTS(text=text, lang="en")
+def speak(text, lang="en"):
+    tts = gTTS(text=text, lang=lang)
     filename = "voice.mp3"
     tts.save(filename)
     playsound.playsound(filename)
     os.remove(filename)
+
 
 def get_audio():
     r = sr.Recognizer()
@@ -55,38 +57,45 @@ class AutoBrowser:
             self.driver.refresh()
             time.sleep(2)
             return self.wait_and_click(xpath)
-
-    def wait_and_get_text(self, xpath, delay=DEFAULT_DELAY):
-        try:
-            w = WebDriverWait(self.driver, delay)
-            elem = w.until(EC.visibility_of_all_elements_located((By.XPATH, xpath)))
-            return elem.text
-        except Exception as e:
-            print("Error")
-            time.sleep(2)
-            return
-            
-
-    def run(self):
+   
+    def run(self, seeking_word):
         input_box = self.driver.find_element(
                 By.XPATH,
                 '//*[@id="tsf"]/div[2]/div[1]/div[1]/div/div[2]/input'
             )
-        input_box.send_keys('unleash meaning')
+        input_box.send_keys(f'{seeking_word} meaning')
         input_box.send_keys(Keys.ENTER)
 
-        time.sleep(0.5)
-        texts = self.driver.find_element(
-            By.XPATH,
-            '//*[@id="tsuid11"]/span/div/div/div[1]/div/div[2]/div[1]/div/span'
-        ).text
 
-        words = ""
-        for text in texts:
-            if text.isalpha():
-                words += text
+        tolerance = 10
 
-        speak(words)
+        while tolerance:
+            try:
+                texts = self.driver.find_element(
+                    By.XPATH,
+                    '//*[@id="tsuid11"]/span/div/div/div[1]/div/div[2]/div[1]/div/span'
+                ).text
+
+                words = ""
+                for text in texts:
+                    if text.isalpha():
+                        words += text
+                meaning = self.driver.find_element(
+                    By.XPATH,
+                    '//*[@id="tsuid11"]/span/div/div/div[1]/div/div[4]/div/div/ol/li/div/div/div[1]/div/div/div[1]/span',
+                ).text
+
+                said = f"{words} meaning is {meaning}"
+                speak(said)
+                return
+            except Exception as e:
+                tolerance -= 1
+                print(f"에러발생 : {e}")
+                print(f"현재 남은 재시도 횟수: {tolerance}")
+                time.sleep(2)
+
+        speak("검색결과가 존재하지않거나 단어가 아닙니다 다시 입력해주세요", lang='ko')
+
 
 
 
