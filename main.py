@@ -63,6 +63,9 @@ class AutoBrowser:
                 By.XPATH,
                 '//*[@id="tsf"]/div[2]/div[1]/div[1]/div/div[2]/input'
             )
+
+        # TODO: CLI 사용하려면 input 함수를 이용하여 단어를 받고,
+        # 백단에서 마이크 인풋을 받아 실행하려면 get_auido 함수를 이용하는 로직 추가하기 
         input_box.send_keys(f'{seeking_word} meaning')
         input_box.send_keys(Keys.ENTER)
 
@@ -99,7 +102,6 @@ class AutoBrowser:
 
 
 
-
 if __name__ == "__main__":
     auto = AutoBrowser(CHROMEDRIVER_PATH)
-    auto.run()
+    auto.run('python')
